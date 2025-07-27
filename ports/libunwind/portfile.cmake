@@ -6,6 +6,7 @@ vcpkg_from_github(
     SHA512 50bb802a821939d38e38ce9f906934eea6a4e815f9401c18d5de6205ae0b5c7594e94d37bbf8f9da4012c0adebac208077548771d21bb89a4dedeb27645ceb25
     PATCHES
         liblzma.diff
+        fix_debian_comple.patch
 )
 
 vcpkg_find_acquire_program(PKGCONFIG)

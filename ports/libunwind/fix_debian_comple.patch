@@ -1,0 +1,13 @@
+diff --git a/src/ptrace/_UPT_ptrauth_insn_mask.c b/src/ptrace/_UPT_ptrauth_insn_mask.c
+index dcc51237..9537c842 100644
+--- a/src/ptrace/_UPT_ptrauth_insn_mask.c
++++ b/src/ptrace/_UPT_ptrauth_insn_mask.c
+@@ -49,7 +49,7 @@ unw_word_t _UPT_ptrauth_insn_mask (UNUSED unw_addr_space_t as, void *arg)
+ 
+ #else
+ 
+-unw_word_t _UPT_ptrauth_insn_mask (unw_addr_space_t, void *)
++unw_word_t _UPT_ptrauth_insn_mask (UNUSED unw_addr_space_t as, void *arg)
+ {
+   return 0;
+ }
