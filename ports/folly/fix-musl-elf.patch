@@ -1,8 +1,18 @@
 diff --git a/folly/debugging/symbolizer/Elf.cpp b/folly/debugging/symbolizer/Elf.cpp
-index 6a7f74f..6546fe0 100644
+index 6e8e642a1..fdba60535 100644
 --- a/folly/debugging/symbolizer/Elf.cpp
 +++ b/folly/debugging/symbolizer/Elf.cpp
-@@ -49,6 +49,8 @@
+@@ -45,10 +45,18 @@
+ #else
+ #define FOLLY_ELF_NATIVE_CLASS 32
+ #endif
++#elif defined(__MUSL__) || defined(__musl__)
++#if defined(__LP64__)
++#define FOLLY_ELF_NATIVE_CLASS 64
++#else
++#define FOLLY_ELF_NATIVE_CLASS 32
++#endif
+ #elif defined(__ANDROID__)
  #define FOLLY_ELF_NATIVE_CLASS __WORDSIZE
  #endif // __ELF_NATIVE_CLASS
  

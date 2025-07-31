@@ -1,0 +1,48 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6e0df138c..a24e780f8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -15,6 +15,43 @@
+ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+ # We use the GoogleTest module if it is available (only in CMake 3.9+)
+ # It requires CMP0054 and CMP0057 to be enabled.
++# 步骤1：检测是否为Alpine系统（通过/etc/os-release的ID字段）
++set(IS_ALPINE OFF)
++if(EXISTS "/etc/os-release")
++    execute_process(
++        COMMAND grep "^ID=alpine" /etc/os-release
++        RESULT_VARIABLE ALPINE_CHECK_RESULT
++        OUTPUT_QUIET  # 不输出结果，只关心返回值
++    )
++    if(ALPINE_CHECK_RESULT EQUAL 0)
++        set(IS_ALPINE ON)
++        message(STATUS "检测到Alpine Linux系统")
++    endif()
++endif()
++
++# 步骤2：如果是Alpine，进一步检测是否为musl环境
++if(IS_ALPINE)
++    execute_process(
++        COMMAND ldd --version
++        OUTPUT_VARIABLE LDD_OUTPUT
++        ERROR_VARIABLE LDD_ERROR
++        RESULT_VARIABLE LDD_RESULT
++    )
++    # 检查ldd输出中是否包含"musl"关键字
++    string(FIND "${LDD_OUTPUT}${LDD_ERROR}" "musl" MUSL_FOUND)
++    if(MUSL_FOUND GREATER -1)
++        message(STATUS "Alpine系统中检测到musl环境，添加__musl__宏")
++        add_definitions(-D__musl__)  # 手动添加宏
++	add_definitions(-D__MUSL__)  # 手动添加宏
++
++    else()
++        message(STATUS "Alpine系统中未检测到musl环境")
++    endif()
++else()
++    message(STATUS "未检测到Alpine Linux系统")
++endif()
++
++
+ if (POLICY CMP0054)
+   cmake_policy(SET CMP0054 NEW)
+ endif()
