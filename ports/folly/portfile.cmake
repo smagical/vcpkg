@@ -15,6 +15,7 @@ vcpkg_from_github(
         fix-absolute-dir.patch
         fix-alpine-not-hava-__musl__.patch
         fix-musl-elf.patch
+        fix-musl-threadLocalDetail.patch
 )
 file(REMOVE "${SOURCE_PATH}/CMake/FindFastFloat.cmake")
 file(REMOVE "${SOURCE_PATH}/CMake/FindFmt.cmake")
