@@ -1,5 +1,5 @@
 diff --git a/folly/detail/ThreadLocalDetail.cpp b/folly/detail/ThreadLocalDetail.cpp
-index 5e5634dc9..f460b7a99 100644
+index 5e5634dc9..93851d521 100644
 --- a/folly/detail/ThreadLocalDetail.cpp
 +++ b/folly/detail/ThreadLocalDetail.cpp
 @@ -34,7 +34,10 @@ constexpr auto kBigGrowthFactor = 1.7;
@@ -38,15 +38,20 @@ index 5e5634dc9..f460b7a99 100644
    if (threadEntryList->count) {
      return;
    }
-@@ -739,6 +750,7 @@ FOLLY_NOINLINE void StaticMetaBase::ensureThreadEntryIsInSet(
+@@ -739,6 +750,12 @@ FOLLY_NOINLINE void StaticMetaBase::ensureThreadEntryIsInSet(
   * release the element @id.
   */
  void* ThreadEntry::releaseElement(uint32_t id) {
-+  
++  #if defined(__MUSL__) || defined(__musl__)
++  // 检查线程是否正在退出
++  if (meta->isThreadExiting()) {
++    return nullptr; // 安全退出
++  }
++#endif  
    auto rlocked = meta->allId2ThreadEntrySets_[id].rlock();
    auto capacity = getElementsCapacity();
    void* ptrToReturn = (capacity >= id) ? elements[id].release() : nullptr;
-@@ -760,6 +772,12 @@ void* ThreadEntry::releaseElement(uint32_t id) {
+@@ -760,6 +777,12 @@ void* ThreadEntry::releaseElement(uint32_t id) {
   * restructure this if a need for it arises.
   */
  void ThreadEntry::cleanupElement(uint32_t id) {
@@ -59,7 +64,7 @@ index 5e5634dc9..f460b7a99 100644
    elements[id].dispose(TLPDestructionMode::THIS_THREAD);
    // Cleanup
    elements[id].cleanup();
-@@ -767,6 +785,12 @@ void ThreadEntry::cleanupElement(uint32_t id) {
+@@ -767,6 +790,12 @@ void ThreadEntry::cleanupElement(uint32_t id) {
  
  void ThreadEntry::resetElementImplAfterSet(
      const ElementWrapper& element, uint32_t id) {
