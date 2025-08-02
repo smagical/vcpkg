@@ -1,0 +1,69 @@
+diff --git a/folly/detail/ThreadLocalDetail.cpp b/folly/detail/ThreadLocalDetail.cpp
+index 5e5634dc9..f7f9dedad 100644
+--- a/folly/detail/ThreadLocalDetail.cpp
++++ b/folly/detail/ThreadLocalDetail.cpp
+@@ -34,7 +34,10 @@ constexpr auto kBigGrowthFactor = 1.7;
+ 
+ namespace folly {
+ namespace threadlocal_detail {
+-
++#if defined(__MUSL__) || defined(__musl__)
++thread_local bool StaticMetaBase::thread_is_exiting_ = false;
++#endif
++	
+ namespace {
+ 
+ struct murmur_hash_fn {
+@@ -434,7 +437,11 @@ void StaticMetaBase::onThreadExit(void* ptr) {
+ /* static */
+ void StaticMetaBase::cleanupThreadEntriesAndList(
+     ThreadEntryList* threadEntryList) {
+-  --threadEntryList->count;
++  #if defined(__MUSL__) || defined(__musl__)
++  // 标记线程正在退出
++  markThreadExiting();
++  #endif
++	--threadEntryList->count;
+   if (threadEntryList->count) {
+     return;
+   }
+diff --git a/folly/detail/ThreadLocalDetail.h b/folly/detail/ThreadLocalDetail.h
+index 1f7fca488..e042665ce 100644
+--- a/folly/detail/ThreadLocalDetail.h
++++ b/folly/detail/ThreadLocalDetail.h
+@@ -327,6 +327,20 @@ struct ThreadEntrySet {
+ };
+ 
+ struct StaticMetaBase {
++  
++
++  #if defined(__MUSL__) || defined(__musl__)
++  // Alpine/musl环境下的线程退出状态跟踪
++  static thread_local bool thread_is_exiting_;
++  
++  static bool isThreadExiting() {
++    return thread_is_exiting_;
++  }
++  
++  static void markThreadExiting() {
++    thread_is_exiting_ = true;
++  }
++  #endif	
+   // In general, emutls cleanup is not guaranteed to play nice with the way
+   // StaticMeta mixes direct pthread calls and the use of __thread. This has
+   // caused problems on multiple platforms so don't use __thread there.
+@@ -608,6 +622,14 @@ struct FOLLY_EXPORT StaticMeta final : StaticMetaBase {
+   }
+ 
+   FOLLY_ALWAYS_INLINE static ElementWrapper& get(EntryID* ent) {
++    
++#if defined(__MUSL__) || defined(__musl__)
++    // Alpine/musl环境下的安全检查
++    if (isThreadExiting()) {
++      static thread_local ElementWrapper safe_wrapper;
++      return safe_wrapper;
++    }
++#endif	  
+     // Eliminate as many branches and as much extra code as possible in the
+     // cached fast path, leaving only one branch here and one indirection
+     // below.
