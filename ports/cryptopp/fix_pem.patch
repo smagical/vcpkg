@@ -1,0 +1,25 @@
+diff --git a/cryptopp/sources.cmake b/cryptopp/sources.cmake
+index 7918f03..f89920c 100644
+--- a/cryptopp/sources.cmake
++++ b/cryptopp/sources.cmake
+@@ -5,6 +5,10 @@
+ 
+ # ***** Library sources *****
+ set(cryptopp_SOURCES
++    pem_common.cpp
++    pem_read.cpp
++    pem_write.cpp
++    x509cert.cpp
+     cryptlib.cpp
+     cpu.cpp
+     integer.cpp
+@@ -184,6 +188,9 @@ set(cryptopp_SOURCES
+ 
+ # ***** Library headers *****
+ set(cryptopp_HEADERS
++    pem.h
++    pem_common.h
++    x509cert.h
+     3way.h
+     adler32.h
+     adv_simd.h

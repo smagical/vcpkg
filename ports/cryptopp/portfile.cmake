@@ -1,24 +1,68 @@
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 string(REPLACE "." "_" CRYPTOPP_VERSION "${VERSION}")
 
-vcpkg_from_github(
-  OUT_SOURCE_PATH CMAKE_SOURCE_PATH
-  REPO abdes/cryptopp-cmake
-  REF "CRYPTOPP_${CRYPTOPP_VERSION}"
-  SHA512 3ec33b107ab627a514e1ebbc4b6522ee8552525f36730d9b5feb85e61ba7fc24fd36eb6050e328c6789ff60d47796beaa8eebf7dead787a34395294fae9bb733
-  HEAD_REF master
-)
 
-vcpkg_from_github(
-  OUT_SOURCE_PATH SOURCE_PATH
-  REPO weidai11/cryptopp
-  REF "CRYPTOPP_${CRYPTOPP_VERSION}"
-  SHA512 28a67141155c9c15e3e6a2173b3a8487cc38a2a2ade73bf4a09814ca541be6b06e9a501be26f7e2f42a2f80df21b076aa5d8ad4224dc0a1f8d7f3b24deae465e
-  HEAD_REF master
-  PATCHES
-      patch.patch
-      cryptopp.patch
-)
+if("pem-pack" IN_LIST FEATURES)
+
+    vcpkg_from_github(
+            OUT_SOURCE_PATH CMAKE_SOURCE_PATH
+            REPO abdes/cryptopp-cmake
+            REF "CRYPTOPP_${CRYPTOPP_VERSION}"
+            SHA512 3ec33b107ab627a514e1ebbc4b6522ee8552525f36730d9b5feb85e61ba7fc24fd36eb6050e328c6789ff60d47796beaa8eebf7dead787a34395294fae9bb733
+            HEAD_REF master
+            PATCHES
+            fix_pem.patch
+    )
+
+    vcpkg_from_github(
+            OUT_SOURCE_PATH SOURCE_PATH
+            REPO weidai11/cryptopp
+            REF "CRYPTOPP_${CRYPTOPP_VERSION}"
+            SHA512 28a67141155c9c15e3e6a2173b3a8487cc38a2a2ade73bf4a09814ca541be6b06e9a501be26f7e2f42a2f80df21b076aa5d8ad4224dc0a1f8d7f3b24deae465e
+            HEAD_REF master
+            PATCHES
+            patch.patch
+            cryptopp.patch
+    )
+
+    vcpkg_from_github(
+            OUT_SOURCE_PATH PEM_PACK_SOURCE_PATH
+            REPO noloader/cryptopp-pem
+            REF 64782e531d116ffbf83ca80614ac408dbb3fd775
+            SHA512 154cf045f822a0da54a88ceb89d5b42cb8ad2eface73eb32a8eee0c4e60be10f4692442f1913f58e894b46412884907f5f70d99d1691ccf52e0aa50c9c9943cd
+            HEAD_REF master
+    )
+#
+        file(GLOB PEM_PACK_FILES
+            ${PEM_PACK_SOURCE_PATH}/*.h
+            ${PEM_PACK_SOURCE_PATH}/*.cpp
+        )
+#        file(INSTALL ${PEM_PACK_FILES} DESTINATION "${CURRENT_PACKAGES_DIR}/include/${PORT}")
+        foreach(PEM_PACK_FILE ${PEM_PACK_FILES})
+            file(COPY ${PEM_PACK_FILE} DESTINATION "${SOURCE_PATH}")
+        endforeach()
+
+else()
+    vcpkg_from_github(
+            OUT_SOURCE_PATH CMAKE_SOURCE_PATH
+            REPO abdes/cryptopp-cmake
+            REF "CRYPTOPP_${CRYPTOPP_VERSION}"
+            SHA512 3ec33b107ab627a514e1ebbc4b6522ee8552525f36730d9b5feb85e61ba7fc24fd36eb6050e328c6789ff60d47796beaa8eebf7dead787a34395294fae9bb733
+            HEAD_REF master
+    )
+
+    vcpkg_from_github(
+            OUT_SOURCE_PATH SOURCE_PATH
+            REPO weidai11/cryptopp
+            REF "CRYPTOPP_${CRYPTOPP_VERSION}"
+            SHA512 28a67141155c9c15e3e6a2173b3a8487cc38a2a2ade73bf4a09814ca541be6b06e9a501be26f7e2f42a2f80df21b076aa5d8ad4224dc0a1f8d7f3b24deae465e
+            HEAD_REF master
+            PATCHES
+            patch.patch
+            cryptopp.patch
+    )
+endif()
+
 
 file(COPY "${CMAKE_SOURCE_PATH}/cryptopp" DESTINATION "${SOURCE_PATH}")
 file(COPY "${CMAKE_SOURCE_PATH}/cmake" DESTINATION "${SOURCE_PATH}")
@@ -26,21 +70,7 @@ file(COPY "${CMAKE_SOURCE_PATH}/test" DESTINATION "${SOURCE_PATH}")
 file(COPY "${CMAKE_SOURCE_PATH}/cryptopp/cryptoppConfig.cmake" DESTINATION "${SOURCE_PATH}")
 file(COPY "${CMAKE_SOURCE_PATH}/CMakeLists.txt" DESTINATION "${SOURCE_PATH}")
 
-if("pem-pack" IN_LIST FEATURES)
-    vcpkg_from_github(
-        OUT_SOURCE_PATH PEM_PACK_SOURCE_PATH
-        REPO noloader/cryptopp-pem
-        REF 095f08ff2ef9bca7b81036a59f2395e4f08ce2e8
-        SHA512 49912758a635faca1f49665ac9552b20576b46e0283aaabc19bb012bdc80586106452018e5088b9b46967717982ca6022ca968edc4cac96a7506d2b1a3e4bf13
-        HEAD_REF master
-    )
 
-    file(GLOB PEM_PACK_FILES
-        ${PEM_PACK_SOURCE_PATH}/*.h
-        ${PEM_PACK_SOURCE_PATH}/*.cpp
-    )
-    file(INSTALL ${PEM_PACK_FILES} DESTINATION "${CURRENT_PACKAGES_DIR}/include/${PORT}")
-endif()
 
 # disable assembly on ARM Windows to fix broken build
 if (VCPKG_TARGET_IS_WINDOWS AND VCPKG_TARGET_ARCHITECTURE MATCHES "^arm")
