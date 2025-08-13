@@ -34,11 +34,14 @@
         }
       ]
     },
+    "coro": {
+      "description": "Build redis-plus-plus with cxx 20 and async and coro standard",
+      "dependencies": [
+        "libuv"
+      ]
+    },
     "cxx17": {
       "description": "Build redis-plus-plus with cxx 17 standard"
-    },
-    "cxx20": {
-      "description": "Build redis-plus-plus with cxx 20 standard"
     },
     "tls": {
       "description": "Build with TLS support",

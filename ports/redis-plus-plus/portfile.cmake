@@ -17,8 +17,6 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
 
 if("cxx17" IN_LIST FEATURES)
     set(REDIS_PLUS_PLUS_CXX_STANDARD 17)
-elseif("cxx20" IN_LIST FEATURES)
-    set(REDIS_PLUS_PLUS_CXX_STANDARD 20)    
 else()
     set(REDIS_PLUS_PLUS_CXX_STANDARD 11)
 endif()
@@ -26,6 +24,11 @@ endif()
 set(EXTRA_OPT "")
 if ("async" IN_LIST FEATURES)
     list(APPEND EXTRA_OPT "-DREDIS_PLUS_PLUS_BUILD_ASYNC=libuv")
+endif()
+if ("coro" IN_LIST FEATURES)
+    list(APPEND EXTRA_OPT "-DREDIS_PLUS_PLUS_BUILD_ASYNC=libuv")
+    list(APPEND EXTRA_OPT "-DREDIS_PLUS_PLUS_BUILD_CORO=ON")
+    set(REDIS_PLUS_PLUS_CXX_STANDARD 20)    
 endif()
 if ("async-std" IN_LIST FEATURES)
     list(APPEND EXTRA_OPT "-DREDIS_PLUS_PLUS_ASYNC_FUTURE=std")
@@ -51,6 +54,13 @@ vcpkg_cmake_install()
 vcpkg_copy_pdbs()
 
 vcpkg_cmake_config_fixup(PACKAGE_NAME redis++ CONFIG_PATH share/cmake/redis++)
+
+if("coro" IN_LIST FEATURES)
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/share/redis++/redis++-config.cmake"
+"include(CMakeFindDependencyMacro)"
+[[include(CMakeFindDependencyMacro)
+find_dependency(libuv CONFIG)]])
+endif()
 
 if("async" IN_LIST FEATURES)
     vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/share/redis++/redis++-config.cmake"
